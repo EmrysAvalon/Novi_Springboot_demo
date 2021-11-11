@@ -1,18 +1,18 @@
 package com.example.demo.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
+@Table(name = "books")
 public class Book {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-
+	@Column(name = "title")
 	private String title;
+	@Column(name = "author")
 	private String author;
+	@Column(name = "isbn")
 	private String isbn;
 
 	public String getTitle() {
