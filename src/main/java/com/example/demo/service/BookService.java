@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.exception.RecordNotFoundException;
 import com.example.demo.model.Book;
 import com.example.demo.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Optional;
 
 @Service
 public class BookService {
@@ -14,12 +16,22 @@ public class BookService {
     @Autowired
     BookRepository bookRepository;
 
-    public Iterable<Book> getBooks() {
-        return bookRepository.findAll();
+    public Iterable<Book> getBooks(String title) {
+        if (title.isEmpty()) {
+            return bookRepository.findAll();
+        }
+        else {
+            return bookRepository.findAllByTitleContainingIgnoreCase(title);
+        }
     }
 
     public Book getBook(int id) {
-        return bookRepository.findById(id).orElse(null);
+        Optional<Book> optionalBook = bookRepository.findById(id);
+        if (optionalBook.isPresent()) {
+            return optionalBook.get();
+        } else {
+            throw new RecordNotFoundException("No book found for the provided ID.");
+        }
     }
 
     public void deleteBook(int id) {
