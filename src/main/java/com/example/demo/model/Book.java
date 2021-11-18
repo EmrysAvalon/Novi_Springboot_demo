@@ -15,6 +15,10 @@ public class Book {
 	@Column(name = "isbn")
 	private String isbn;
 
+	public int getId() {
+		return id;
+	}
+
 	public String getTitle() {
 		return title;
 	}

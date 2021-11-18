@@ -2,8 +2,10 @@ package com.example.demo.controller;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import com.example.demo.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,46 +24,28 @@ import com.example.demo.repository.BookRepository;
 @RestController
 public class BookController {
 
-	private List<Book> books = new ArrayList<>();
-
-	public BookController() {
-		Book b1 = new Book();
-		b1.setTitle("Harry Potter");
-		b1.setAuthor("J.K. Rowling");
-		b1.setIsbn("123456");
-
-		books.add(b1);
-
-		Book b2 = new Book();
-		b2.setTitle("Harry Potter2");
-		b2.setAuthor("J.K. Rowling");
-		b2.setIsbn("654321");
-
-		books.add(b2);
-	}
 	@Autowired
-	private BookRepository bookRepository;
+	private BookService bookService;
 
 	@GetMapping(value = "/books")
 	public ResponseEntity<Object> getBooks() {
-		return ResponseEntity.ok(bookRepository.findAll());
+		return ResponseEntity.ok(bookService.getBooks());
 	}
 
 	@GetMapping(value = "/books/{id}")
 	public ResponseEntity<Object> getBook(@PathVariable int id) {
-		return ResponseEntity.ok(bookRepository.findById(id));
+		return ResponseEntity.ok(bookService.getBook(id));
 	}
 
 	@DeleteMapping(value = "/books/{id}")
 	public ResponseEntity<Object> removeBook(@PathVariable int id) {
-		books.remove(id);
+		bookService.deleteBook(id);
 		return ResponseEntity.noContent().build();
 	}
 
 	@PostMapping(value = "/books")
 	public ResponseEntity<Object> addBook(@RequestBody Book book) {
-		books.add(book);
-		int newBookId = books.size()-1;
+		int newBookId = bookService.addBook(book);
 
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(newBookId).toUri();
 
@@ -70,28 +54,15 @@ public class BookController {
 
 	@PutMapping(value = "/books/{id}")
 	public ResponseEntity<Object> updateBook(@PathVariable int id, @RequestBody Book book) {
-		books.set(id, book);
+		bookService.updateBook(id, book);
 
-		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(id).toUri();
-
-		return ResponseEntity.created(location).build();
+		return ResponseEntity.noContent().build();
 	}
 
 	@PatchMapping(value = "/books/{id}")
 	public ResponseEntity<Object> updateBookPartially(@PathVariable int id, @RequestBody Book book) {
-		Book existingBook = books.get(id);
-		if (!book.getTitle().isEmpty()){
-			existingBook.setTitle(book.getTitle());
-		}
-		if (!book.getAuthor().isEmpty()){
-			existingBook.setAuthor(book.getAuthor());
-		}
-		if (!book.getIsbn().isEmpty()){
-			existingBook.setIsbn(book.getIsbn());
-		}
-		books.set(id, existingBook);
+		bookService.partialUpdateBook(id, book);
 
-		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(id).toUri();
-		return ResponseEntity.created(location).build();
+		return ResponseEntity.noContent().build();
 	}
 }
