@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.exception.BadRequestException;
 import com.example.demo.exception.RecordNotFoundException;
 import com.example.demo.model.Book;
 import com.example.demo.repository.BookRepository;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -35,43 +37,56 @@ public class BookService {
     }
 
     public void deleteBook(int id) {
-        bookRepository.deleteById(id);
+        if (bookRepository.existsById(id)) {
+            bookRepository.deleteById(id);
+        } else {
+            throw new RecordNotFoundException("ID does not exist.");
+        }
     }
 
     public int addBook(Book book) {
+        String isbn = book.getIsbn();
+        List<Book> books = (List<Book>)bookRepository.findAllByIsbn(isbn);
+        if (books.size() > 0) {
+            throw new BadRequestException("Isbn already exists.");
+        }
         Book newBook = bookRepository.save(book);
         return newBook.getId();
     }
 
     public void updateBook(int id, Book book) {
-        Book existingBook = bookRepository.findById(id).orElse(null);
+        Optional<Book> optionalBook = bookRepository.findById(id);
 
-        if (!(book.getTitle() == null) && !book.getTitle().isEmpty()){
-            existingBook.setTitle(book.getTitle());
+        if (optionalBook.isPresent()) {
+            Book storedBook = optionalBook.get();
+
+            book.setId(storedBook.getId());
+            bookRepository.save(book);
         }
-        if (!(book.getAuthor() == null) && !book.getAuthor().isEmpty()){
-            existingBook.setAuthor(book.getAuthor());
+        else {
+            throw new RecordNotFoundException("ID does not exist!!!");
         }
-        if (!(book.getIsbn() == null) && !book.getIsbn().isEmpty()){
-            existingBook.setIsbn(book.getIsbn());
-        }
-        bookRepository.save(existingBook);
     }
 
     public void partialUpdateBook(int id, Book book) {
-        Book existingBook = bookRepository.findById(id).orElse(null);
+        Optional<Book> optionalBook = bookRepository.findById(id);
 
-        if (!(book.getTitle() == null) && !book.getTitle().isEmpty()){
-            existingBook.setTitle(book.getTitle());
-        }
-        if (!(book.getAuthor() == null) && !book.getAuthor().isEmpty()){
-            existingBook.setAuthor(book.getAuthor());
-        }
-        if (!(book.getIsbn() == null) && !book.getIsbn().isEmpty()){
-            existingBook.setIsbn(book.getIsbn());
-        }
-        bookRepository.save(existingBook);
+        if (optionalBook.isPresent()) {
+            Book storedBook = bookRepository.findById(id).orElse(null);
 
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(id).toUri();
+            if (book.getTitle() != null && !book.getTitle().isEmpty()) {
+                storedBook.setTitle(book.getTitle());
+            }
+            if (book.getAuthor() != null && !book.getAuthor().isEmpty()) {
+                storedBook.setAuthor(book.getAuthor());
+            }
+            if (book.getIsbn() != null && !book.getIsbn().isEmpty()) {
+                storedBook.setIsbn(book.getIsbn());
+            }
+            bookRepository.save(storedBook);
+
+        } else {
+            throw new RecordNotFoundException("ID does not exist!!!");
+        }
     }
 }
