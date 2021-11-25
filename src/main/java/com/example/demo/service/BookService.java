@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.BookRequestDto;
 import com.example.demo.exception.BadRequestException;
 import com.example.demo.exception.RecordNotFoundException;
 import com.example.demo.model.Book;
@@ -44,12 +45,16 @@ public class BookService {
         }
     }
 
-    public int addBook(Book book) {
-        String isbn = book.getIsbn();
+    public int addBook(BookRequestDto bookDto) {
+        String isbn = bookDto.getIsbn();
         List<Book> books = (List<Book>)bookRepository.findAllByIsbn(isbn);
         if (books.size() > 0) {
             throw new BadRequestException("Isbn already exists.");
         }
+        Book book = new Book();
+        book.setAuthor(bookDto.getAuthor());
+        book.setIsbn(bookDto.getIsbn());
+        book.setTitle(bookDto.getTitle());
         Book newBook = bookRepository.save(book);
         return newBook.getId();
     }

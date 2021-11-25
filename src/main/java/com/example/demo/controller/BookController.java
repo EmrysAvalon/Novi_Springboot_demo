@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.example.demo.dto.BookRequestDto;
 import com.example.demo.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.example.demo.model.Book;
 import com.example.demo.repository.BookRepository;
+
+import javax.validation.Valid;
 
 @RestController
 public class BookController {
@@ -37,8 +40,8 @@ public class BookController {
 	}
 
 	@PostMapping(value = "/books")
-	public ResponseEntity<Object> addBook(@RequestBody Book book) {
-		int newBookId = bookService.addBook(book);
+	public ResponseEntity<Object> addBook(@Valid @RequestBody BookRequestDto bookDto) {
+		int newBookId = bookService.addBook(bookDto);
 
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(newBookId).toUri();
 
